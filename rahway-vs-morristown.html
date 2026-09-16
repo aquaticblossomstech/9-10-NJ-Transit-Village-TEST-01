@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rahway ↔ Morristown — Garden State Grid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#0A0A0D; --panel:#131318; --line:#2A2A32;
+    --ink:#ECEAE6; --ink-dim:#9B9AA3;
+    --violet:#8B7CF6; --cyan:#4BC7E1; --amber:#E8A33D; --red:#E14B4B; --green:#4FD68C;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--void); color:var(--ink); font-family:'DM Sans', sans-serif; -webkit-font-smoothing:antialiased; }
+  .mono{ font-family:'DM Mono', monospace; }
+  a{ color:var(--cyan); }
+
+  #progress{ position:fixed; top:0; left:0; height:2px; background:linear-gradient(90deg,var(--green),var(--cyan)); width:0%; z-index:50; transition:width 0.1s linear; }
+
+  .topbar{ position:sticky; top:2px; z-index:40; background:rgba(10,10,13,0.92); backdrop-filter:blur(6px); border-bottom:1px solid var(--line); padding:14px 0; }
+  .topbar .wrap{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;}
+  .topbar a.back{ font-family:'DM Mono', monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-dim); text-decoration:none; }
+  .topbar a.back:hover{ color:var(--ink); }
+  .topbar .rn{ font-family:'DM Mono', monospace; font-size:11px; color:var(--ink-dim); }
+
+  .wrap{ max-width:1080px; margin:0 auto; padding:0 32px; }
+  .article{ max-width:760px; margin:0 auto; padding:0 32px; }
+
+  .masthead{ padding:64px 0 40px 0; border-bottom:1px solid var(--line); margin-bottom:48px; }
+  .kicker{ font-family:'DM Mono', monospace; font-size:12px; letter-spacing:2px; color:var(--ink-dim); text-transform:uppercase; margin-bottom:20px; }
+  .kicker::before{ content:"●"; color:var(--violet); margin-right:10px; font-size:9px; position:relative; top:-2px; }
+  h1.title{ font-family:'Bebas Neue', sans-serif; font-size:clamp(38px,7.5vw,72px); line-height:0.95; margin:0 0 6px 0; text-transform:uppercase; }
+  h1.title .vs{ color:var(--ink-dim); font-size:0.55em; padding:0 8px; }
+  .tagline{ font-size:18px; font-style:italic; color:var(--ink-dim); margin:14px 0 22px 0; max-width:56ch; }
+  .dek{ font-size:16px; line-height:1.65; color:#D8D6D1; max-width:60ch; }
+
+  .shared-tag{
+    display:inline-flex; align-items:center; gap:10px; font-family:'DM Mono', monospace; font-size:11px;
+    letter-spacing:1px; text-transform:uppercase; color:var(--ink-dim); margin-top:22px; padding:8px 14px;
+    border:1px solid var(--line); border-radius:2px;
+  }
+  .shared-tag b{ color:var(--ink); background:none; }
+
+  .instrument-q{ border-left:4px solid var(--violet); padding:6px 0 6px 20px; margin:32px 0 0 0; font-size:20px; line-height:1.5; font-style:italic; color:var(--ink); max-width:58ch;}
+
+  /* vitals comparison */
+  .vitals{ margin:56px 0; }
+  .vitals-head{ font-family:'DM Mono', monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ink-dim); margin-bottom:16px; }
+  .vitals-grid{ display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--line); border:1px solid var(--line); }
+  .vcol{ background:var(--panel); padding:22px 24px; }
+  .vcol h3{ font-family:'Bebas Neue', sans-serif; font-size:26px; margin:0 0 16px 0; text-transform:uppercase; letter-spacing:0.3px; }
+  .vcol.rahway h3{ color:var(--green); }
+  .vcol.morristown h3{ color:var(--cyan); }
+  .vrow{ padding:10px 0; border-top:1px solid var(--line); }
+  .vrow:first-of-type{ border-top:none; }
+  .vrow .k{ font-family:'DM Mono', monospace; font-size:9.5px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-dim); display:block; margin-bottom:3px; }
+  .vrow .v{ font-size:14px; line-height:1.45; color:var(--ink); }
+
+  .stage{ margin-bottom:60px; }
+  .stage-tag{ display:inline-block; font-family:'DM Mono', monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; padding:3px 10px; border:1px solid; border-radius:2px; margin-bottom:20px; }
+  .stage h2{ font-family:'Bebas Neue', sans-serif; font-size:30px; margin:0 0 20px 0; text-transform:uppercase; line-height:1.05; }
+  .stage p{ font-size:16px; line-height:1.7; margin:0 0 18px 0; color:#D8D6D1; }
+  .stage p:last-child{ margin-bottom:0; }
+
+  /* dual timeline */
+  .timeline-panel{ border:1px solid var(--line); background:var(--panel); border-radius:2px; padding:24px; margin:28px 0; }
+  svg.dual-chain{ width:100%; height:auto; display:block; }
+  .tl-line{ fill:none; stroke-width:2.5; }
+  .tl-line.rahway{ stroke:var(--green); }
+  .tl-line.morristown{ stroke:var(--cyan); }
+  .tl-node{ stroke-width:2; fill:var(--void); }
+  .tl-node.rahway{ stroke:var(--green); }
+  .tl-node.morristown{ stroke:var(--cyan); }
+  .tl-label{ font-family:'DM Mono', monospace; font-size:10px; fill:var(--ink-dim); }
+  .tl-label.hi{ fill:var(--ink); font-weight:500; }
+  .tl-row-label{ font-family:'Bebas Neue', sans-serif; font-size:15px; letter-spacing:0.4px; }
+  .tl-row-label.rahway{ fill:var(--green); }
+  .tl-row-label.morristown{ fill:var(--cyan); }
+
+  blockquote{ border-left:3px solid var(--amber); margin:28px 0; padding:6px 0 6px 20px; font-size:17px; line-height:1.55; font-style:italic; color:var(--ink); }
+  blockquote cite{ display:block; font-style:normal; font-family:'DM Mono', monospace; font-size:11px; color:var(--ink-dim); margin-top:8px; text-transform:uppercase; letter-spacing:0.5px;}
+
+  .split{ display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:24px 0; }
+  .split .box{ border:1px solid var(--line); border-top-width:3px; padding:18px 20px; background:var(--panel); }
+  .split .box.rahway{ border-top-color:var(--green); }
+  .split .box.morristown{ border-top-color:var(--cyan); }
+  .split .box h4{ font-family:'Bebas Neue', sans-serif; font-size:17px; margin:0 0 10px 0; text-transform:uppercase; }
+  .split .box.rahway h4{ color:var(--green); }
+  .split .box.morristown h4{ color:var(--cyan); }
+  .split .box p{ font-size:13.5px; line-height:1.55; color:var(--ink-dim); margin:0; }
+  @media (max-width:640px){ .split{ grid-template-columns:1fr; } .vitals-grid{ grid-template-columns:1fr; } }
+
+  .unknown-box{ border:1px dashed var(--red); padding:16px 20px; margin:28px 0; border-radius:2px; background:rgba(225,75,75,0.05); }
+  .unknown-box .tag{ font-family:'DM Mono', monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--red); display:block; margin-bottom:8px; }
+  .unknown-box p{ font-size:14.5px; line-height:1.55; color:var(--ink-dim); margin:0; }
+
+  .sources{ margin-top:72px; padding-top:32px; border-top:1px solid var(--line); }
+  .sources h4{ font-family:'DM Mono', monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ink-dim); margin:0 0 16px 0; }
+  .sources ol{ margin:0; padding:0 0 0 20px; }
+  .sources li{ font-size:12.5px; line-height:1.6; color:var(--ink-dim); margin-bottom:8px; }
+
+  footer{ border-top:1px solid var(--line); padding:40px 0; margin-top:40px; }
+  .foot-row{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+  .foot-row .mono{ font-size:11px; color:var(--ink-dim); letter-spacing:0.5px; text-transform:uppercase; }
+
+  @media (prefers-reduced-motion: reduce){
+    .tl-line{ stroke-dasharray:none !important; stroke-dashoffset:0 !important; }
+    #progress{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div class="topbar">
+  <div class="wrap">
+    <a class="back" href="GSG_TransitVillage_Intro.html">&larr; Transit Village Readings</a>
+    <span class="rn mono">COMPARATIVE READING &middot; NOT NUMBERED IN THE SERIES</span>
+  </div>
+</div>
+
+<article class="article">
+
+  <div class="masthead">
+    <div class="kicker">Garden State Grid &nbsp;/&nbsp; Comparative Field Read</div>
+    <h1 class="title">RAHWAY<span class="vs">&harr;</span>MORRISTOWN</h1>
+    <p class="tagline">&ldquo;Three years apart on the same founding-era program. Two very different financing stories.&rdquo;</p>
+    <p class="dek">
+      Both were named New Jersey Transit Villages in the program's first wave &mdash; Morristown in 1999, one
+      of the original five; Rahway in 2002, the seventh. Both built their downtown turnaround on the same
+      three moves: a mixed-use housing project beside the station, a converted historic theater as the
+      cultural anchor, and a stalled or slow-moving second redevelopment site nearby. Only one of them ended
+      up sharing revenue with NJ Transit itself.
+    </p>
+    <div class="shared-tag">
+      <span>SHARED SYSTEM</span>
+      <b>Founding-era NJDOT Transit Village designation, same three-part downtown playbook</b>
+    </div>
+    <p class="instrument-q">
+      Same early designation, the same playbook, the same era of ambition. What does it mean that only one
+      of these two towns turned its transit village into an actual revenue-sharing partner of NJ Transit?
+    </p>
+  </div>
+
+  <!-- VITALS -->
+  <div class="vitals">
+    <div class="vitals-head mono">VERIFIED VITALS</div>
+    <div class="vitals-grid">
+      <div class="vcol rahway">
+        <h3>Rahway</h3>
+        <div class="vrow"><span class="k">Designated</span><span class="v">2002 &middot; 7th Transit Village</span></div>
+        <div class="vrow"><span class="k">Rail Line</span><span class="v">Northeast Corridor &mdash; one-seat ride to New York, Trenton, Newark; also North Jersey Coast Line</span></div>
+        <div class="vrow"><span class="k">Anchor Housing</span><span class="v">Park Square (159 units + retail) and River Place (136 units)</span></div>
+        <div class="vrow"><span class="k">Cultural Anchor</span><span class="v">1928 Rahway Theatre restored &amp; expanded as UCPAC; Hamilton Stage added in a former laundry building</span></div>
+        <div class="vrow"><span class="k">Financing Mechanism</span><span class="v">NJDEP Brownfield Development Area (up to $5M/yr eligibility) + PILOT tax abatement + one $470,000 direct Transit Village grant (2009)</span></div>
+      </div>
+      <div class="vcol morristown">
+        <h3>Morristown</h3>
+        <div class="vrow"><span class="k">Designated</span><span class="v">1999 &middot; one of the first five</span></div>
+        <div class="vrow"><span class="k">Rail Line</span><span class="v">Morris &amp; Essex Line &mdash; 24 direct trains daily to NY Penn Station, 15 to Hoboken/PATH; 2,200+ weekday boardings</span></div>
+        <div class="vrow"><span class="k">Anchor Housing</span><span class="v">Highlands at Morristown Station &mdash; 217&ndash;218 units + 8,000 sq ft retail, $75 million project</span></div>
+        <div class="vrow"><span class="k">Cultural Anchor</span><span class="v">Mayo Performing Arts Center, historic venue with a 2014 facade renovation</span></div>
+        <div class="vrow"><span class="k">Financing Mechanism</span><span class="v">NJ Transit sold its own parking lot to the developer, contributed $1.75M to the garage, and kept 6% of gross proceeds from any future sale or refinancing</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <section class="stage">
+    <span class="stage-tag mono" style="color:var(--violet); border-color:var(--violet);">Relationship</span>
+    <h2>Two timelines, the same shape</h2>
+    <p>
+      Laid side by side, the sequence each town followed is almost identical &mdash; designation, a station-area
+      catalyst, a housing project, a cultural venue, a second site that moved slower than the first.
+    </p>
+    <div class="timeline-panel">
+      <svg class="dual-chain" id="dualChain" viewBox="0 0 900 220"></svg>
+    </div>
+    <p>
+      Morristown's Highlands opened in 2009 &mdash; the same year Rahway's brownfield remediation area was
+      designated. Both towns' "second site" stories ran into friction: Rahway's redevelopment continued
+      through multiple later projects, while Morristown's Train Station Redevelopment Area, designated in
+      2006&ndash;2007, was still without a selected developer as of the most recent record found for this
+      reading, despite a 2012 request for qualifications.
+    </p>
+  </section>
+
+  <!-- THE DIFFERENCE -->
+  <section class="stage">
+    <span class="stage-tag mono" style="color:var(--amber); border-color:var(--amber);">The Difference</span>
+    <h2>One deal gave NJ Transit a stake. The other didn't need to.</h2>
+    <p>
+      Morristown's Highlands project sits on land NJ Transit itself owned &mdash; a commuter parking lot
+      directly across from the station. That gave NJ Transit something to negotiate with. The agency sold
+      the land to the developer, put $1.75 million of its own money into the shared parking garage, kept 415
+      commuter spaces under its own easements, and structured a six percent cut of gross proceeds from any
+      future sale or refinancing of the residential and retail portions.
+    </p>
+    <blockquote>
+      NJ Transit agreed to contribute $1.75 million to the projected $8.75 million cost of the parking
+      garage... and will also collect six percent of the gross proceeds from any future sale or refinancing
+      of the residential and retail portions of the project.
+      <cite>The Transit Friendly Planning Newsletter, njtod.org</cite>
+    </blockquote>
+    <p>
+      Rahway's equivalent site &mdash; the thirteen tax lots that became Park Square &mdash; was privately
+      assembled land with no NJ Transit ownership stake to negotiate from. Its financing ran through NJDEP
+      brownfield cleanup funding and a municipal PILOT agreement instead. Two comparable-scale housing
+      anchors, financed by two structurally different deals, because one site started out belonging to the
+      transit agency and the other didn't.
+    </p>
+
+    <div class="split">
+      <div class="box rahway">
+        <h4>Rahway's Lever</h4>
+        <p>Privately assembled land + state brownfield cleanup money + a municipal tax abatement. NJ Transit's role was largely the 2006 station renovation, not land ownership.</p>
+      </div>
+      <div class="box morristown">
+        <h4>Morristown's Lever</h4>
+        <p>NJ Transit&ndash;owned land, sold into the deal with a retained revenue share. The agency became a long-term financial stakeholder in the project's outcome, not just its host.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RETURN -->
+  <section class="stage">
+    <span class="stage-tag mono" style="color:var(--ink-dim); border-color:var(--ink-dim);">Return</span>
+    <h2>Same era, same playbook, different owner of the dirt</h2>
+    <p>
+      Both towns kept the substance of their founding-era promise: real housing, a restored cultural venue,
+      a downtown that reads as transformed rather than merely rezoned. What differs isn't ambition or even
+      outcome &mdash; it's who owned the single most important parcel when the deal got made. Rahway's
+      story, as <a href="reading-06-designation-at-home.html">Reading 06</a> traces, runs through brownfield
+      money and one mayor's tenure. Morristown's runs through a real-estate transaction where the transit
+      agency itself ended up on the cap table.
+    </p>
+
+    <div class="unknown-box">
+      <span class="tag">Still Unknown</span>
+      <p>
+        Whether NJ Transit has ever collected on its six percent share of Highlands at Morristown's proceeds
+        &mdash; the project has had no reported sale or refinancing event in the record checked for this
+        reading &mdash; and whether the Train Station Redevelopment Area's stalled status has changed since
+        the most recent record found (2022) are both open. Also unresolved: whether Rahway's station-area
+        parking was ever NJ Transit&ndash;owned in a way comparable to Morristown's Lafayette Street lot,
+        which would test whether "who owned the land" really is the deciding variable, or just the most
+        visible one.
+      </p>
+    </div>
+  </section>
+
+  <div class="sources">
+    <h4>Sources</h4>
+    <ol>
+      <li>njtod.org, "Morristown Projects Move Forward" and "Morristown's Transit Village: Full Steam Ahead."</li>
+      <li>njtod.org, "Morristown Transit Village: The Epstein's Department Store Project Begins," Nov. 2006.</li>
+      <li>Morristown Partnership, "Morristown's Economic Development History."</li>
+      <li>Town of Morristown, "Current Projects" (Train Station Redevelopment Area status).</li>
+      <li>NJDOT Transit Village FAQ (full designation roster and years).</li>
+      <li>njtod.org, "Municipal Spotlight: The Resurgence of Rahway" and "Cleanup and Redevelopment in Rahway."</li>
+    </ol>
+  </div>
+
+</article>
+
+<footer>
+  <div class="wrap foot-row">
+    <div class="mono">Garden State Grid &middot; Rahway, NJ</div>
+    <div class="mono"><a href="GSG_TransitVillage_Intro.html" style="color:var(--ink-dim);">&larr; All 12 Readings</a></div>
+  </div>
+</footer>
+
+<script>
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+  document.getElementById('progress').style.width = scrolled + '%';
+});
+
+// Dual timeline data
+const RAHWAY_TL = [
+  ['2002','Designation'], ['2006','Station Renovation'], ['2007','Land Assembly'], ['2009','Brownfield + Grant'], ['Present','Built Downtown']
+];
+const MORRISTOWN_TL = [
+  ['1999','Designation'], ['2005','Highlands Plan Approved'], ['2006','Epstein\u2019s Groundbreaking'], ['2009','Highlands Opens'], ['Present','2nd Site Stalled']
+];
+
+const svg = document.getElementById('dualChain');
+const W = 900, leftPad = 40, rightPad = 55;
+const rowY = { rahway: 60, morristown: 160 };
+
+function buildRow(data, y, cls, rowLabel) {
+  const n = data.length;
+  const xFor = (i) => leftPad + i * ((W-leftPad-rightPad)/(n-1));
+  const rl = document.createElementNS('http://www.w3.org/2000/svg','text');
+  rl.setAttribute('x', 0); rl.setAttribute('y', y - 24); rl.setAttribute('class', 'tl-row-label ' + cls);
+  rl.textContent = rowLabel;
+  svg.appendChild(rl);
+
+  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+  path.setAttribute('d', `M${xFor(0)},${y} L${xFor(n-1)},${y}`);
+  path.setAttribute('class', 'tl-line ' + cls);
+  path.id = 'path-' + cls;
+  svg.appendChild(path);
+
+  data.forEach((d, i) => {
+    const x = xFor(i);
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', 5);
+    c.setAttribute('class', 'tl-node ' + cls);
+    svg.appendChild(c);
+
+    const yr = document.createElementNS('http://www.w3.org/2000/svg','text');
+    yr.setAttribute('x', x); yr.setAttribute('y', y - 12); yr.setAttribute('text-anchor','middle');
+    yr.setAttribute('class', 'tl-label hi'); yr.textContent = d[0];
+    svg.appendChild(yr);
+
+    const lbl = document.createElementNS('http://www.w3.org/2000/svg','text');
+    lbl.setAttribute('x', x); lbl.setAttribute('y', y + 20); lbl.setAttribute('text-anchor','middle');
+    lbl.setAttribute('class', 'tl-label');
+    const words = d[1].split(' ');
+    if (words.length > 2) {
+      const mid = Math.ceil(words.length/2);
+      const t1 = document.createElementNS('http://www.w3.org/2000/svg','tspan');
+      t1.setAttribute('x', x); t1.setAttribute('dy','0'); t1.textContent = words.slice(0,mid).join(' ');
+      const t2 = document.createElementNS('http://www.w3.org/2000/svg','tspan');
+      t2.setAttribute('x', x); t2.setAttribute('dy','12'); t2.textContent = words.slice(mid).join(' ');
+      lbl.appendChild(t1); lbl.appendChild(t2);
+    } else {
+      lbl.textContent = d[1];
+    }
+    svg.appendChild(lbl);
+  });
+}
+
+buildRow(RAHWAY_TL, rowY.rahway, 'rahway', 'RAHWAY');
+buildRow(MORRISTOWN_TL, rowY.morristown, 'morristown', 'MORRISTOWN');
+
+let drawn = false;
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !drawn) {
+      drawn = true;
+      ['path-rahway','path-morristown'].forEach((id, idx) => {
+        const p = document.getElementById(id);
+        const len = p.getTotalLength();
+        p.style.strokeDasharray = len;
+        p.style.strokeDashoffset = len;
+        p.getBoundingClientRect();
+        p.style.transition = `stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1) ${idx * 0.25}s`;
+        p.style.strokeDashoffset = '0';
+      });
+    }
+  });
+}, { threshold: 0.4 });
+io.observe(svg);
+</script>
+
+</body>
+</html>
